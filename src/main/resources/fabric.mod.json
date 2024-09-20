@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "cobblemon_player_warps",
+  "version": "1.0",
+  "name": "Cobblemon Player Warps",
+  "description": "Mod for using player-warps.",
+  "authors": [
+    "Conan"
+  ],
+  "license": "MPL-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "com.conan.mods.pwarps.fabric.CobblePWarps"
+      }
+    ]
+  },
+  "depends": {
+    "java": ">=17",
+    "minecraft": ">=1.20.1",
+    "fabricloader": ">=0.14.14",
+    "fabric-language-kotlin": ">=1.10.8+kotlin.1.9.0",
+    "fabric": "*",
+    "cobblemon": ">=1.4.0"
+  }
+}
