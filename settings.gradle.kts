@@ -1,4 +1,4 @@
-rootProject.name = "cobblemon-player-warps"
+rootProject.name = "cobble-tasks"
 
 pluginManagement {
     repositories {

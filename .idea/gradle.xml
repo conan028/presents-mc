@@ -6,7 +6,7 @@
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="$PROJECT_DIR$/../Gradle1/gradle-8.1" />
-        <option name="gradleJvm" value="17" />
+        <option name="gradleJvm" value="21" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -16,7 +16,7 @@
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/libs" />
         <option name="gradleHome" value="$PROJECT_DIR$/../Gradle1/gradle-8.1" />
-        <option name="gradleJvm" value="17" />
+        <option name="gradleJvm" value="21" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/libs" />

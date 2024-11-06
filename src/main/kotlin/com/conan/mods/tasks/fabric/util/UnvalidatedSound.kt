@@ -1,4 +1,4 @@
-package com.conan.mods.pwarps.fabric.util
+package com.conan.mods.tasks.fabric.util
 
 import com.cobblemon.mod.common.api.net.NetworkPacket
 import net.minecraft.server.network.ServerPlayerEntity

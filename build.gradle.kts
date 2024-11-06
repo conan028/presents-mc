@@ -55,8 +55,6 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:${property("minimessage_version")}")
     implementation("net.kyori:adventure-text-serializer-gson:${property("minimessage_version")}")
 
-    implementation("net.impactdev.impactor.api:economy:5.1.1-SNAPSHOT")
-
     compileOnly("net.luckperms:api:5.4")
 }
 

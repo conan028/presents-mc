@@ -1,9 +1,9 @@
-package com.conan.mods.pwarps.fabric.models
+package com.conan.mods.tasks.fabric.models
 
 data class MenuItem (
     val name: String,
     val material: String,
     val nbt: String? = null,
-    val lore: MutableList<String?>,
-    val amount: Int
+    val amount: Int,
+    val slot: Int
 )

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "cobblemon_player_warps",
+  "id": "cobble_tasks",
   "version": "1.0",
-  "name": "Cobblemon Player Warps",
-  "description": "Mod for using player-warps.",
+  "name": "Cobblemon Tasks",
+  "description": "Mod for implementing community tasks related to Pokemon",
   "authors": [
     "Conan"
   ],
@@ -13,7 +13,7 @@
     "main": [
       {
         "adapter": "kotlin",
-        "value": "com.conan.mods.pwarps.fabric.CobblePWarps"
+        "value": "com.conan.mods.tasks.fabric.CobbleTasks"
       }
     ]
   },

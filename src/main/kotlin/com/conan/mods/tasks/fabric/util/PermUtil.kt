@@ -1,4 +1,4 @@
-package com.conan.mods.pwarps.fabric.util
+package com.conan.mods.tasks.fabric.util
 
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
