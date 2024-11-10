@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "cobble_tasks",
+  "id": "cobble_presents",
   "version": "1.0",
-  "name": "Cobblemon Tasks",
-  "description": "Mod for implementing community tasks related to Pokemon",
+  "name": "Cobblemon Presents",
+  "description": "Mod for presents",
   "authors": [
     "Conan"
   ],
@@ -13,7 +13,7 @@
     "main": [
       {
         "adapter": "kotlin",
-        "value": "com.conan.mods.tasks.fabric.CobbleTasks"
+        "value": "com.conan.mods.presents.fabric.CobblePresent"
       }
     ]
   },
