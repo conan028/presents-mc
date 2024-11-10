@@ -13,6 +13,7 @@ import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.PlayerEvent
 import net.fabricmc.api.ModInitializer
+import net.minecraft.component.DataComponentTypes
 import net.minecraft.server.network.ServerPlayerEntity
 
 object CobblePresent : ModInitializer {
@@ -39,7 +40,7 @@ object CobblePresent : ModInitializer {
                 }
 
                 val configPresent = config.config.presents.find { it.identifier == present.identifier }
-                configPresent?.rewards?.forEach { PM.runCommand(it.replace("%player%", player.entityName)) }
+                configPresent?.rewards?.forEach { PM.runCommand(it.replace("%player%", player.name.string)) }
 
                 dbHandler!!.addPresentToPlayer(player.uuidAsString, pos.asLong())
                 PM.sendText(player, config.config.messages.foundPresent)
@@ -50,8 +51,8 @@ object CobblePresent : ModInitializer {
 
 
         BlockEvent.PLACE.register { world, pos, _, player ->
-            if (player is ServerPlayerEntity && player.mainHandStack.nbt?.contains("present") == true) {
-                val presentIdentifier = player.mainHandStack.nbt?.getString("present")
+            if (player is ServerPlayerEntity && player.mainHandStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.contains("present") == true) {
+                val presentIdentifier = player.mainHandStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getString("present")
 
                 if (presentIdentifier != null) {
                     PresentData(presentIdentifier, world.registryKey.value.path, pos.asLong()).let { dbHandler?.addPresent(it) }

@@ -8,8 +8,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.NbtComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtHelper
 import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.NbtString
@@ -29,32 +32,35 @@ object PM {
         val component = parseMessageWithStyles(text, "placeholder")
         val gson = GsonComponentSerializer.gson()
         val json = gson.serialize(component)
-        return Text.Serializer.fromJson(json) as Text
+        return Text.Serialization.fromJson(json, server()!!.registryManager) as Text
     }
 
     fun returnPresentItem(present: Present) : ItemStack {
         val presentItem = ItemStack(Registries.ITEM.get(Identifier.tryParse(present.item.material)))
 
-        presentItem.setCustomName(returnStyledText(present.item.name))
+        presentItem.set(DataComponentTypes.CUSTOM_NAME, returnStyledText(present.item.name))
 
         if (present.item.nbt != null) {
-            presentItem.nbt = NbtHelper.fromNbtProviderString(present.item.nbt)
+            presentItem.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(NbtHelper.fromNbtProviderString(present.item.nbt)))
         }
 
-        presentItem.orCreateNbt.putString("present", present.identifier)
+        val compound = NbtCompound()
+        compound.putString("present", present.identifier)
+        presentItem.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compound))
 
         return presentItem
     }
 
     fun setLore(itemStack: ItemStack, lore: List<Text>) {
-        val itemNbt = itemStack.getOrCreateSubNbt("display")
+        val itemNbt = itemStack.get(DataComponentTypes.LORE)
+
         val loreNbt = NbtList()
 
         for (line in lore) {
-            loreNbt.add(NbtString.of(Text.Serializer.toJson(line)))
+            loreNbt.add(NbtString.of(Text.Serialization.toJsonString(line, server()!!.registryManager)))
         }
 
-        itemNbt.put("Lore", loreNbt)
+        itemStack.set(DataComponentTypes.LORE, itemNbt)
     }
 
     fun runCommand(command: String) {
