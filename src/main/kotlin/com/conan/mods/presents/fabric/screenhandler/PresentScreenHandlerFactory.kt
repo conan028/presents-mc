@@ -25,7 +25,7 @@ class PresentScreenHandlerFactory(
     player: ServerPlayerEntity
 ) : GenericContainerScreenHandler(ScreenHandlerType.GENERIC_9X6, syncId, player.inventory, SimpleInventory(9 * 6), 6) {
 
-    var currentIndex = 0
+    private var currentIndex = 0
 
     init {
         populateInventory(currentIndex)
