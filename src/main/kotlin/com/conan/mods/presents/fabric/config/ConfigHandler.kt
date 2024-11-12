@@ -2,6 +2,7 @@ package com.conan.mods.presents.fabric.config
 
 import com.conan.mods.presents.fabric.datahandler.DatabaseHandlerSingleton
 import com.conan.mods.presents.fabric.datahandler.JsonDBHandler
+import com.conan.mods.presents.fabric.models.MenuItem
 import com.conan.mods.presents.fabric.models.Present
 import com.conan.mods.presents.fabric.models.PresentItem
 import com.google.gson.Gson
@@ -32,21 +33,20 @@ object ConfigHandler {
         val configString = configFile.readText()
         val updatedConfig = gson.fromJson(configString, Config::class.java)
         config = updatedConfig
-
-        val updatedConfigString = gson.toJson(config)
-        configFile.writeText(updatedConfigString)
+        configFile.writeText(gson.toJson(config))
     }
 
     data class Config (
         val messages: ConfigurableMessages = ConfigurableMessages(),
+        val menu: MenuConfig = MenuConfig(),
         val presents: MutableList<Present> = mutableListOf(
             Present(
                 "christmas",
                 PresentItem(
                     "Christmas Present",
                     "minecraft:player_head",
-                    "{display:{Name:'{\"text\":\"Present\",\"color\":\"gold\",\"underlined\":true,\"bold\":true,\"italic\":false}',Lore:['{\"text\":\"Custom Head ID: 69151\",\"color\":\"gray\",\"italic\":false}','{\"text\":\"www.minecraft-heads.com\",\"color\":\"blue\",\"italic\":false}']},SkullOwner:{Id:[I;-2002873815,1388858326,-1525192356,172033830],Properties:{textures:[{Value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmIxZWM3ZGM3NTMwNjFjYTE3NDQyNGVhNDVjZjk0OTBiMzljZDVkY2NhNDc3ZDEzOGE2MDNlNmJlNzU1ZWM3MiJ9fX0=\"}]}}}"
-                ),
+                    "{\"minecraft:profile\":{\"id\":[I;-2002873815,1388858326,-1525192356,172033830],\"name\":\"\",\"properties\":[{\"name\":\"textures\",\"value\":\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmIxZWM3ZGM3NTMwNjFjYTE3NDQyNGVhNDVjZjk0OTBiMzljZDVkY2NhNDc3ZDEzOGE2MDNlNmJlNzU1ZWM3MiJ9fX0=\"}]}}"
+                    ),
                 mutableListOf(
                     "give %player% diamond 1",
                     "give %player% emerald 1"
@@ -55,10 +55,22 @@ object ConfigHandler {
         )
     )
 
+    data class MenuConfig(
+        val closeItem: MenuItem = MenuItem("<red>Close", "barrier", mutableListOf(), null, 1),
+        val fillItem: MenuItem = MenuItem("<gray> ", "gray_stained_glass_pane", mutableListOf(), null, 1),
+        val barItem: MenuItem = MenuItem("<gray> ", "black_stained_glass_pane", mutableListOf(), null, 1),
+        val nextPageItem: MenuItem = MenuItem("<green>Next", "arrow", mutableListOf(), null, 1),
+        val lastPageItem: MenuItem = MenuItem("<green>Back", "arrow", mutableListOf(), null, 1),
+        val presentLore: MutableList<String> = mutableListOf(
+            "<green>Dimension: <gray>%dimension%",
+            "<green>Location: <gray>%x%</gray>, <gray>%y%</gray>, <gray>%z%</gray>"
+        )
+    )
+
     data class ConfigurableMessages(
         val prefix: String = "<red>[<dark_green>Presents<red>] <dark_gray>»",
-        val alreadyFoundPresent: String = "%prefix% <red>You've already found this present!",
-        val foundPresent: String = "You successfully found a present"
+        val alreadyFoundPresent: String = "%prefix% <red>You've already found this present.",
+        val foundPresent: String = "%prefix% You found a present."
     )
 
 }

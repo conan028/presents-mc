@@ -1,6 +1,5 @@
 package com.conan.mods.presents.fabric
 
-import com.cobblemon.mod.common.Cobblemon.LOGGER
 import com.conan.mods.presents.fabric.commands.PresentCommand
 import com.conan.mods.presents.fabric.config.ConfigHandler
 import com.conan.mods.presents.fabric.datahandler.DatabaseHandlerSingleton.dbHandler
@@ -8,16 +7,18 @@ import com.conan.mods.presents.fabric.models.PresentData
 import com.conan.mods.presents.fabric.util.PM
 import com.conan.mods.presents.fabric.util.PermUtil
 import dev.architectury.event.EventResult
-import dev.architectury.event.events.common.BlockEvent
-import dev.architectury.event.events.common.CommandRegistrationEvent
-import dev.architectury.event.events.common.InteractionEvent
-import dev.architectury.event.events.common.PlayerEvent
+import dev.architectury.event.events.common.*
 import net.fabricmc.api.ModInitializer
 import net.minecraft.component.DataComponentTypes
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
+import org.apache.logging.log4j.LogManager
 
-object CobblePresent : ModInitializer {
+object Presents : ModInitializer {
 
+    val LOGGER = LogManager.getLogger()
+
+    var server: MinecraftServer? = null
     var config = ConfigHandler
 
     override fun onInitialize() {
@@ -27,6 +28,8 @@ object CobblePresent : ModInitializer {
         CommandRegistrationEvent.EVENT.register { dispatcher, _, _ ->
             PresentCommand.register(dispatcher)
         }
+
+        LifecycleEvent.SERVER_STARTING.register { server = it }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register { player, _, pos, _ ->
             val present = dbHandler!!.getPresentByLong(pos.asLong())
@@ -44,40 +47,34 @@ object CobblePresent : ModInitializer {
 
                 dbHandler!!.addPresentToPlayer(player.uuidAsString, pos.asLong())
                 PM.sendText(player, config.config.messages.foundPresent)
+                return@register EventResult.interruptFalse()
             }
-
             EventResult.pass()
         }
 
-
         BlockEvent.PLACE.register { world, pos, _, player ->
-            if (player is ServerPlayerEntity && player.mainHandStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.contains("present") == true) {
-                val presentIdentifier = player.mainHandStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getString("present")
-
-                if (presentIdentifier != null) {
-                    PresentData(presentIdentifier, world.registryKey.value.path, pos.asLong()).let { dbHandler?.addPresent(it) }
-                    PM.sendText(player, "%prefix% <green>Successfully added a new present.")
+            if (player is ServerPlayerEntity) {
+                player.mainHandStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.let { nbt ->
+                    val presentIdentifier = nbt.getString("present")
+                    val presentData = PresentData(presentIdentifier, world.registryKey.value.path, pos.asLong())
+                    dbHandler?.addPresent(presentData)
+                    PM.sendText(player, "%prefix% <gray>Successfully added a new present.")
                 }
             }
             EventResult.pass()
         }
-
 
         BlockEvent.BREAK.register { _, pos, _, player, _ ->
             if (player is ServerPlayerEntity) {
-                val data = dbHandler!!.getPresentByLong(pos.asLong())
-                if (data != null) {
-                    dbHandler!!.removePrevent(pos.asLong())
-                    PM.sendText(player, "%prefix% <red>Successfully removed present.")
-                }
-
+                val data = dbHandler!!.getPresentByLong(pos.asLong()) ?: return@register EventResult.pass()
+                dbHandler!!.removePrevent(data.pos)
+                PM.sendText(player, "%prefix% <gray>Successfully removed present.")
             }
             EventResult.pass()
         }
 
-
         PlayerEvent.PLAYER_JOIN.register { player ->
-            if (player.hasPermissionLevel(2) || PermUtil.commandRequiresPermission(player.commandSource, "presents.admin")) {
+            if (player.hasPermissionLevel(2) || PermUtil.commandRequiresPermission(player.commandSource, "present.admin")) {
                 val identifierCounts = config.config.presents.groupBy { it.identifier }
                 val duplicateIdentifiers = identifierCounts.filter { it.value.size > 1 }
 
@@ -86,7 +83,6 @@ object CobblePresent : ModInitializer {
                 }
             }
         }
-
 
     }
 

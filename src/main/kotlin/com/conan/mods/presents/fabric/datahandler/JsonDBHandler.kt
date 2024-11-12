@@ -1,6 +1,7 @@
 package com.conan.mods.presents.fabric.datahandler
 
 import com.conan.mods.presents.fabric.models.PresentData
+import com.conan.mods.presents.fabric.util.ConfigFileHandler
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -15,24 +16,20 @@ class JsonDBHandler : DatabaseHandler {
     private var presents: MutableSet<PresentData>
 
     init {
-        players = if (playersFile.exists()) {
-            gson.fromJson(playersFile.reader(), object : TypeToken<MutableMap<String, MutableSet<Long>>>() {}.type)
-        } else {
-            playersFile.parentFile.mkdirs()
-            playersFile.createNewFile()
+        players = ConfigFileHandler.loadOrInitializeFile(
+            playersFile,
+            object : TypeToken<MutableMap<String, MutableSet<Long>>>() {}.type,
             mutableMapOf()
-        }
+        )
 
-        presents = if (presentsFile.exists()) {
-            gson.fromJson(presentsFile.reader(), object : TypeToken<MutableSet<PresentData>>() {}.type)
-        } else {
-            presentsFile.parentFile.mkdirs()
-            presentsFile.createNewFile()
+        presents = ConfigFileHandler.loadOrInitializeFile(
+            presentsFile,
+            object : TypeToken<MutableSet<PresentData>>() {}.type,
             mutableSetOf()
-        }
+        )
     }
 
-    override fun initializePlayerIfNotExists(uuid: String) {
+    private fun initializePlayerIfNotExists(uuid: String) {
         players.putIfAbsent(uuid, mutableSetOf())
         savePlayers()
     }
@@ -44,12 +41,8 @@ class JsonDBHandler : DatabaseHandler {
     }
 
     override fun fetchFoundPresents(uuid: String): MutableSet<Long> {
-        return if (!players.containsKey(uuid)) {
-            initializePlayerIfNotExists(uuid)
-            mutableSetOf()
-        } else {
-            players[uuid]!!
-        }
+        initializePlayerIfNotExists(uuid)
+        return players.getOrPut(uuid) { mutableSetOf() }
     }
 
     override fun getPresents(): MutableSet<PresentData> {
