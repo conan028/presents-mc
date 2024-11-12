@@ -1,13 +1,16 @@
 package com.conan.mods.presents.fabric.screenhandler
 
-import com.cobblemon.mod.common.util.server
-import com.conan.mods.presents.fabric.CobblePresent.config
+import com.conan.mods.presents.fabric.Presents.config
+import com.conan.mods.presents.fabric.Presents.server
 import com.conan.mods.presents.fabric.datahandler.DatabaseHandlerSingleton.dbHandler
 import com.conan.mods.presents.fabric.util.PM
+import com.conan.mods.presents.fabric.util.PM.setCustomData
+import com.jcraft.jorbis.Block
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.NbtComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.SimpleInventory
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.screen.GenericContainerScreenHandler
@@ -15,8 +18,6 @@ import net.minecraft.screen.ScreenHandlerType
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvent
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
 
@@ -29,84 +30,79 @@ class PresentScreenHandlerFactory(
 
     init {
         populateInventory(currentIndex)
-
-        player.playSound(
-            SoundEvent.of(Identifier("cobblemon", "pc.on")),
-            SoundCategory.MASTER,
-            1.0f,
-            1.0f
-        )
     }
 
     private fun populateInventory(cIndex: Int) {
         for (i in 0 until inventory.size()) {
-            inventory.setStack(i, ItemStack(Items.GRAY_STAINED_GLASS_PANE).setCustomName(PM.returnStyledText("<gray> ")))
+            inventory.setStack(i, PM.returnMenuItem(config.config.menu.fillItem))
         }
 
         val activePresents = dbHandler!!.getPresents()
 
-        for ((index, activePresent) in activePresents.drop(cIndex).withIndex()) {
-            val present = config.config.presents.find { it.identifier == activePresent.identifier }
-            if (present != null) {
-                val presentItem = PM.returnPresentItem(present)
+        for ((index, presentData) in activePresents.drop(cIndex).withIndex()) {
+            val present = config.config.presents.find { it.identifier == presentData.identifier } ?: continue
+            val presentItem = PM.returnPresentItem(present)
 
-                val pos = BlockPos.fromLong(activePresent.pos)
+            val pos = BlockPos.fromLong(presentData.pos)
 
-                presentItem.orCreateNbt.putLong("location", activePresent.pos)
-                presentItem.orCreateNbt.putString("dimension", activePresent.dimension)
-                PM.setLore(presentItem, listOf(
-                    PM.returnStyledText("<green>Dimension: <gray>${activePresent.dimension}"),
-                    PM.returnStyledText("<green>Location: <gray>${pos.x}</gray>, <gray>${pos.y}</gray>, <gray>${pos.z}</gray>")
-                ))
+            val data = presentItem.get(DataComponentTypes.CUSTOM_DATA)
+            val compound = data?.copyNbt() ?: NbtCompound()
+            compound.putLong("location", presentData.pos)
+            compound.putString("dimension", presentData.dimension)
+            presentItem.setCustomData(compound)
 
-                if (index < 54) {
-                    inventory.setStack(index, presentItem)
-                }
+            PM.setLore(presentItem, config.config.menu.presentLore.map {
+                it.replace("%dimension%", presentData.dimension)
+                    .replace("%x%", "${pos.x}")
+                    .replace("%y%", "${pos.y}")
+                    .replace("%z%", "${pos.z}")
+            })
+
+            if (index < 54) {
+                inventory.setStack(index, presentItem)
             }
         }
 
         for (i in 45 until inventory.size()) {
-            inventory.setStack(i, ItemStack(Items.BLACK_STAINED_GLASS_PANE).setCustomName(PM.returnStyledText("<gray> ")))
+            inventory.setStack(i, PM.returnMenuItem(config.config.menu.barItem))
         }
 
         if (currentIndex != 0) {
-            inventory.setStack(45, ItemStack(Items.ARROW))
+            inventory.setStack(45, PM.returnMenuItem(config.config.menu.lastPageItem))
         }
 
         if (currentIndex < (activePresents.size - 1) / 45) {
-            inventory.setStack(53, ItemStack(Items.ARROW))
+            inventory.setStack(53, PM.returnMenuItem(config.config.menu.nextPageItem))
         }
 
-        inventory.setStack(49, ItemStack(Items.BARRIER).setCustomName(PM.returnStyledText("<red>Close")))
+        inventory.setStack(49, PM.returnMenuItem(config.config.menu.closeItem))
+    }
+
+    private fun teleportPlayer(player: ServerPlayerEntity, dimension: String, pos: BlockPos) {
+        val dimensionKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.tryParse(dimension))
+        val world = server?.getWorld(dimensionKey)
+
+        player.teleport(
+            world,
+            pos.x.toDouble() + 0.5,
+            pos.y.toDouble() + 2f,
+            pos.z.toDouble() + 0.5,
+            0f,
+            0f
+        )
+
     }
 
     override fun onSlotClick(slotIndex: Int, button: Int, actionType: SlotActionType?, player: PlayerEntity?) {
         val clickedStack = inventory.getStack(slotIndex)
         val activePresents = dbHandler!!.getPresents()
 
-        player?.playSound(
-            SoundEvent.of(Identifier("cobblemon", "pc.click")),
-            SoundCategory.MASTER,
-            1.0f,
-            1.0f
-        )
+        if (slotIndex in 0 until 46 && player is ServerPlayerEntity && clickedStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.contains("present") == true) {
+            val location = clickedStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getLong("location") ?: return
+            val dimension = clickedStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getString("dimension") ?: return
+            val pos = BlockPos.fromLong(location) ?: return
 
-        if (slotIndex in 0 until 46 && player is ServerPlayerEntity && clickedStack.nbt?.contains("present") == true) {
-            val location = clickedStack.nbt!!.getLong("location")
-            val dimension = clickedStack.nbt!!.getString("dimension")
-            val pos = BlockPos.fromLong(location)
-
-            val dimensionKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.tryParse(dimension))
-            val world = server()!!.getWorld(dimensionKey)
-
-            player.teleport(
-                world,
-                pos.x.toDouble() + 0.5,
-                pos.y.toDouble() + 2f,
-                pos.z.toDouble() + 0.5,
-                0f,
-                0f
-            )
+            teleportPlayer(player, dimension, pos)
 
             player.closeHandledScreen()
         }
@@ -126,17 +122,6 @@ class PresentScreenHandlerFactory(
         }
     }
 
-
-    override fun onClosed(player: PlayerEntity?) {
-        player?.playSound(
-            SoundEvent.of(Identifier("cobblemon", "pc.off")),
-            SoundCategory.MASTER,
-            1.0f,
-            1.0f
-        )
-
-        super.onClosed(player)
-    }
 }
 
 fun presentScreenHandlerFactory(

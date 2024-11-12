@@ -1,4 +1,4 @@
-rootProject.name = "cobble-presents"
+rootProject.name = "presents"
 
 pluginManagement {
     repositories {

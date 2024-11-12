@@ -1,18 +1,25 @@
 package com.conan.mods.presents.fabric.util
 
-import com.cobblemon.mod.common.util.server
-import com.conan.mods.presents.fabric.CobblePresent.config
+import com.conan.mods.presents.fabric.Presents.LOGGER
+import com.conan.mods.presents.fabric.Presents.config
+import com.conan.mods.presents.fabric.Presents.server
+import com.conan.mods.presents.fabric.models.MenuItem
 import com.conan.mods.presents.fabric.models.Present
 import com.mojang.brigadier.ParseResults
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.minecraft.component.ComponentChanges
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.component.type.LoreComponent
+import net.minecraft.component.type.NbtComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtHelper
-import net.minecraft.nbt.NbtList
-import net.minecraft.nbt.NbtString
+import net.minecraft.item.Items
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtOps
+import net.minecraft.nbt.StringNbtReader
 import net.minecraft.registry.Registries
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
@@ -29,39 +36,80 @@ object PM {
         val component = parseMessageWithStyles(text, "placeholder")
         val gson = GsonComponentSerializer.gson()
         val json = gson.serialize(component)
-        return Text.Serializer.fromJson(json) as Text
+        return Text.Serialization.fromJson(json, server?.registryManager) as Text
     }
 
-    fun returnPresentItem(present: Present) : ItemStack {
+    fun returnPresentItem(present: Present): ItemStack {
         val presentItem = ItemStack(Registries.ITEM.get(Identifier.tryParse(present.item.material)))
 
-        presentItem.setCustomName(returnStyledText(present.item.name))
+        val nameData = presentItem.get(DataComponentTypes.CUSTOM_NAME)
+        val nameNbt = nameData?.copy().apply { returnStyledText(present.item.name) } ?: returnStyledText(present.item.name)
+        presentItem.set(DataComponentTypes.CUSTOM_NAME, nameNbt)
 
         if (present.item.nbt != null) {
-            presentItem.nbt = NbtHelper.fromNbtProviderString(present.item.nbt)
+            val nbt = StringNbtReader.parse(present.item.nbt)
+            val componentChanges = ComponentChanges.CODEC.parse(NbtOps.INSTANCE, nbt).orThrow ?: return ItemStack(Items.BARRIER)
+            presentItem.applyChanges(componentChanges)
         }
 
-        presentItem.orCreateNbt.putString("present", present.identifier)
+        val data = presentItem.get(DataComponentTypes.CUSTOM_DATA)
+        val compound = data?.copyNbt() ?: NbtCompound()
+        compound.putString("present", present.identifier)
+        presentItem.setCustomData(compound)
 
         return presentItem
     }
 
-    fun setLore(itemStack: ItemStack, lore: List<Text>) {
-        val itemNbt = itemStack.getOrCreateSubNbt("display")
-        val loreNbt = NbtList()
+    fun ItemStack.setCustomData(compound: NbtCompound) {
+        this.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compound))
+    }
 
-        for (line in lore) {
-            loreNbt.add(NbtString.of(Text.Serializer.toJson(line)))
+    fun setLore(itemStack: ItemStack, lore: List<String>) {
+        var itemLore = itemStack.components.get(DataComponentTypes.LORE)
+
+        if (itemLore == null) {
+            itemLore = LoreComponent(emptyList())
         }
 
-        itemNbt.put("Lore", loreNbt)
+        val allLoreLines: MutableList<Text> = itemLore.lines.toMutableList()
+
+        for (line in lore) {
+            allLoreLines.add(returnStyledText(line))
+        }
+
+        itemLore = LoreComponent(allLoreLines)
+
+        itemStack.set(DataComponentTypes.LORE, itemLore)
+    }
+
+    fun returnMenuItem(item: MenuItem) : ItemStack {
+        val itemStack = ItemStack(Registries.ITEM.get(Identifier.tryParse(item.material)))
+
+        val nameData = itemStack.get(DataComponentTypes.CUSTOM_NAME)
+        val nameNbt = nameData?.copy().apply { returnStyledText(item.name) } ?: returnStyledText(item.name)
+        itemStack.set(DataComponentTypes.CUSTOM_NAME, nameNbt)
+
+        if (item.nbt != null) {
+            val nbt = StringNbtReader.parse(item.nbt)
+            val componentChanges = ComponentChanges.CODEC.parse(NbtOps.INSTANCE, nbt).orThrow ?: return ItemStack(Items.BARRIER)
+            itemStack.applyChanges(componentChanges)
+        }
+
+        if (item.lore.isNotEmpty()) {
+            setLore(itemStack, item.lore)
+        }
+
+        itemStack.count = item.amount
+
+        return itemStack
     }
 
     fun runCommand(command: String) {
         try {
-            val parseResults: ParseResults<ServerCommandSource> =
-                server()!!.commandManager.dispatcher.parse(command, server()!!.commandSource)
-            server()!!.commandManager.dispatcher.execute(parseResults)
+            val parseResults: ParseResults<ServerCommandSource> = server?.commandManager?.dispatcher?.parse(command, server?.commandSource) ?: return run {
+                LOGGER.error("Could not parse for command string: $command")
+            }
+            server?.commandManager?.dispatcher?.execute(parseResults)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -71,4 +119,5 @@ object PM {
         val component = returnStyledText(text.replace("%prefix%", config.config.messages.prefix))
         player.sendMessage(component, false)
     }
+
 }
