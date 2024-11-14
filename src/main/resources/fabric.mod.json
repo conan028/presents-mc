@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "presents",
-  "version": "1.0",
+  "version": "1.0.1",
   "name": "Presents",
   "description": "A simple mod that allows you to place intractable presents.",
   "authors": [

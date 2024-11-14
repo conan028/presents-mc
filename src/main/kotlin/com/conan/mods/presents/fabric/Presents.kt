@@ -32,9 +32,9 @@ object Presents : ModInitializer {
         LifecycleEvent.SERVER_STARTING.register { server = it }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register { player, _, pos, _ ->
-            val present = dbHandler!!.getPresentByLong(pos.asLong())
+            val potentialPresent = dbHandler!!.getPresentByLong(pos.asLong())
 
-            if (present != null) {
+            if (potentialPresent != null) {
                 val foundPresents = dbHandler!!.fetchFoundPresents(player.uuidAsString)
 
                 if (foundPresents.contains(pos.asLong())) {
@@ -42,11 +42,10 @@ object Presents : ModInitializer {
                     return@register EventResult.interruptFalse()
                 }
 
-                val configPresent = config.config.presents.find { it.identifier == present.identifier }
-                configPresent?.rewards?.forEach { PM.runCommand(it.replace("%player%", player.name.string)) }
-
+                val present = config.config.presents.find { it.identifier == potentialPresent.identifier } ?: return@register  EventResult.interruptFalse()
+                present.awardRewards(player as ServerPlayerEntity)
                 dbHandler!!.addPresentToPlayer(player.uuidAsString, pos.asLong())
-                PM.sendText(player, config.config.messages.foundPresent)
+
                 return@register EventResult.interruptFalse()
             }
             EventResult.pass()
@@ -67,7 +66,7 @@ object Presents : ModInitializer {
         BlockEvent.BREAK.register { _, pos, _, player, _ ->
             if (player is ServerPlayerEntity) {
                 val data = dbHandler!!.getPresentByLong(pos.asLong()) ?: return@register EventResult.pass()
-                dbHandler!!.removePrevent(data.pos)
+                dbHandler!!.removePresent(data.pos)
                 PM.sendText(player, "%prefix% <gray>Successfully removed present.")
             }
             EventResult.pass()

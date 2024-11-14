@@ -43,7 +43,7 @@ object PM {
         val presentItem = ItemStack(Registries.ITEM.get(Identifier.tryParse(present.item.material)))
 
         val nameData = presentItem.get(DataComponentTypes.CUSTOM_NAME)
-        val nameNbt = nameData?.copy().apply { returnStyledText(present.item.name) } ?: returnStyledText(present.item.name)
+        val nameNbt = nameData?.copy().apply { present.item.name?.let { returnStyledText(it) } }
         presentItem.set(DataComponentTypes.CUSTOM_NAME, nameNbt)
 
         if (present.item.nbt != null) {
@@ -95,11 +95,11 @@ object PM {
             itemStack.applyChanges(componentChanges)
         }
 
-        if (item.lore.isNotEmpty()) {
+        if (item.lore?.isNotEmpty() == true) {
             setLore(itemStack, item.lore)
         }
 
-        itemStack.count = item.amount
+        itemStack.count = item.amount ?: 1
 
         return itemStack
     }

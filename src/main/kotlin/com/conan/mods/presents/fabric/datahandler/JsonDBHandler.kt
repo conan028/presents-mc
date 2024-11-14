@@ -58,8 +58,11 @@ class JsonDBHandler : DatabaseHandler {
         savePresents()
     }
 
-    override fun removePrevent(pos: Long) {
+    override fun removePresent(pos: Long) {
         presents.removeIf { it.pos == pos }
+        players.forEach { (_, positions) ->
+            positions.removeIf { it == pos }
+        }
         savePresents()
     }
 

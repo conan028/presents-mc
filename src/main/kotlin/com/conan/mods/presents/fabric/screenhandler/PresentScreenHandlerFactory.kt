@@ -5,9 +5,7 @@ import com.conan.mods.presents.fabric.Presents.server
 import com.conan.mods.presents.fabric.datahandler.DatabaseHandlerSingleton.dbHandler
 import com.conan.mods.presents.fabric.util.PM
 import com.conan.mods.presents.fabric.util.PM.setCustomData
-import com.jcraft.jorbis.Block
 import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.SimpleInventory
 import net.minecraft.nbt.NbtCompound

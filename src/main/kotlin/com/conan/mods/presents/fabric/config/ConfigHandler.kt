@@ -47,20 +47,20 @@ object ConfigHandler {
                     "minecraft:player_head",
                     "{\"minecraft:profile\":{\"id\":[I;-2002873815,1388858326,-1525192356,172033830],\"name\":\"\",\"properties\":[{\"name\":\"textures\",\"value\":\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmIxZWM3ZGM3NTMwNjFjYTE3NDQyNGVhNDVjZjk0OTBiMzljZDVkY2NhNDc3ZDEzOGE2MDNlNmJlNzU1ZWM3MiJ9fX0=\"}]}}"
                     ),
+                null,
                 mutableListOf(
-                    "give %player% diamond 1",
-                    "give %player% emerald 1"
+                    "give %player% diamond 1"
                 )
             )
         )
     )
 
     data class MenuConfig(
-        val closeItem: MenuItem = MenuItem("<red>Close", "barrier", mutableListOf(), null, 1),
-        val fillItem: MenuItem = MenuItem("<gray> ", "gray_stained_glass_pane", mutableListOf(), null, 1),
-        val barItem: MenuItem = MenuItem("<gray> ", "black_stained_glass_pane", mutableListOf(), null, 1),
-        val nextPageItem: MenuItem = MenuItem("<green>Next", "arrow", mutableListOf(), null, 1),
-        val lastPageItem: MenuItem = MenuItem("<green>Back", "arrow", mutableListOf(), null, 1),
+        val closeItem: MenuItem = MenuItem("<red>Close", "barrier", null, null, null),
+        val fillItem: MenuItem = MenuItem("<gray> ", "gray_stained_glass_pane", null, null, null),
+        val barItem: MenuItem = MenuItem("<gray> ", "black_stained_glass_pane", null, null, null),
+        val nextPageItem: MenuItem = MenuItem("<green>Next", "arrow", null, null, null),
+        val lastPageItem: MenuItem = MenuItem("<green>Back", "arrow", null, null, null),
         val presentLore: MutableList<String> = mutableListOf(
             "<green>Dimension: <gray>%dimension%",
             "<green>Location: <gray>%x%</gray>, <gray>%y%</gray>, <gray>%z%</gray>"

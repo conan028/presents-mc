@@ -8,5 +8,5 @@ interface DatabaseHandler {
     fun getPresents() : MutableSet<PresentData>
     fun getPresentByLong(pos: Long) : PresentData?
     fun addPresent(data: PresentData)
-    fun removePrevent(pos: Long)
+    fun removePresent(pos: Long)
 }
