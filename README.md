@@ -16,6 +16,19 @@ _All commands require either ```Permission Level 2``` or ```present.admin``` as 
 - ```/presents reload``` -> Reloads the config.
 
 
+## Menu Item Configuration
+Each item available in the menu can be configured as follows:
+```json
+{
+  "name": "Menu Item",
+  "material": "stone",
+  "lore": ["Lore line 1", "Lore line 2"],
+  "nbt": "{}",
+  "amount": 1
+}
+
+```
+
 ## Config
 
 ```json
@@ -28,33 +41,23 @@ _All commands require either ```Permission Level 2``` or ```present.admin``` as 
   "menu": {
     "closeItem": {
       "name": "<red>Close",
-      "material": "barrier",
-      "lore": [],
-      "amount": 1
+      "material": "barrier"
     },
     "fillItem": {
       "name": "<gray> ",
-      "material": "gray_stained_glass_pane",
-      "lore": [],
-      "amount": 1
+      "material": "gray_stained_glass_pane"
     },
     "barItem": {
       "name": "<gray> ",
-      "material": "black_stained_glass_pane",
-      "lore": [],
-      "amount": 1
+      "material": "black_stained_glass_pane"
     },
     "nextPageItem": {
       "name": "<green>Next",
-      "material": "arrow",
-      "lore": [],
-      "amount": 1
+      "material": "arrow"
     },
     "lastPageItem": {
       "name": "<green>Back",
-      "material": "arrow",
-      "lore": [],
-      "amount": 1
+      "material": "arrow"
     },
     "presentLore": [
       "<green>Dimension: <gray>%dimension%",
@@ -70,8 +73,7 @@ _All commands require either ```Permission Level 2``` or ```present.admin``` as 
         "nbt": "{\"minecraft:profile\":{\"id\":[I;-2002873815,1388858326,-1525192356,172033830],\"name\":\"\",\"properties\":[{\"name\":\"textures\",\"value\":\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmIxZWM3ZGM3NTMwNjFjYTE3NDQyNGVhNDVjZjk0OTBiMzljZDVkY2NhNDc3ZDEzOGE2MDNlNmJlNzU1ZWM3MiJ9fX0=\"}]}}"
       },
       "rewards": [
-        "give %player% diamond 1",
-        "give %player% emerald 1"
+        "give %player% diamond 1"
       ]
     }
   ]
